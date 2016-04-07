@@ -1,0 +1,5 @@
+#!/bin/bash
+
+psql -c 'select current_database(), pg_size_pretty(pg_database_size(current_database())) AS pre_repack_size' $1
+{{ pgbin_dir }}/pg_repack $1
+psql -c 'select current_database(), pg_size_pretty(pg_database_size(current_database())) AS post_repack_size' $1

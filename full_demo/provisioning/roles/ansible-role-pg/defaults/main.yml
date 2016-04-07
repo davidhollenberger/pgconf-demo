@@ -1,0 +1,124 @@
+---
+
+#default inventory groups
+pg_group: postgres
+pg_master_group: master
+pg_slave_group: slave
+pg_cluster_group: cluster_{{ pg_cluster }}
+barman_group: barman
+
+#Generate encrypted passwords using
+# sudo pip install passlib
+# python -c "from passlib.apps import postgres_context; import getpass; print postgres_context.encrypt(getpass.getpass(), user='username')"
+postgres_password: md53175bce1d3201d16594cebf9d7eb3f9d #postgres
+
+pg_repack: true   # install pg_repack extension
+
+# Define pg_dbs in inventory
+# pg_dbs:
+#   lab:
+#     owner: postgres
+#     password_hash: "{{ postgres_password }}"
+#     dbname: lab
+#     env: lab
+#     bkp_hour: 3
+#     bkp_min: 30
+
+# Settings for Postgres
+pg_version: 9.4
+
+pg_rpm: #from http://yum.postgresql.org/repopackages.php
+  9.4:
+    url: http://yum.postgresql.org/9.4/redhat/rhel-6-x86_64/pgdg-centos94-9.4-1.noarch.rpm
+  9.5:
+    url: https://download.postgresql.org/pub/repos/yum/9.5/redhat/rhel-6-x86_64/pgdg-centos95-9.5-2.noarch.rpm
+
+postgres_env:
+  PGDATA: /var/lib/pgsql/{{ pg_version }}/data
+
+pgbin_dir: /usr/pgsql-{{ pg_version }}/bin
+pgdata_dir: /var/lib/pgsql/{{ pg_version }}/data
+pgscripts_dir: /var/lib/pgsql/scripts
+pglog_dir: /var/lib/pgsql/{{ pg_version }}/data/pg_log
+pgbackup_dir: /var/lib/pgsql/{{ pg_version }}/backups
+
+#postgres extensions
+pg_repack_version: 1.3.2
+
+#postgres settings
+max_connections: 50
+shared_buffers: "{{ (ansible_memtotal_mb // 4) }}"
+effective_cache_size: "{{ (ansible_memtotal_mb * 3) // 4 }}"
+work_mem: "{{ ((ansible_memtotal_mb * 0.75) / (max_connections * 3)) | round(0,'ceil')| int }}"
+maintenance_work_mem: "{{ (ansible_memtotal_mb // 16) if (ansible_memtotal_mb // 16) <= 2048 else 2048 }}"
+checkpoint_segments: 32
+checkpoint_completion_target: 0.7
+wal_buffers: 16  #MB
+default_statistics_target: 100
+
+#Postgresql.conf Settings
+postgresql_conf:
+  9.4:
+    - { value: "log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log' # log file name pattern,", regexp: '^#?log_filename' }
+    - { value: "#log_rotation_age = 1d                  # Automatic rotation of logfiles will", regexp: '^#?log_rotation_age' }
+    - { value: "log_rotation_size = 250MB                   # Automatic rotation of logfiles will", regexp: '^#?log_rotation_size' }
+    - { value: "log_checkpoints = on", regexp: '^#?log_checkpoints' }
+    - { value: "log_connections = on", regexp: '^#?log_connections' }
+    - { value: "log_disconnections = on", regexp: '^#?log_disconnections' }
+    - { value: "log_lock_waits = on                   # log lock waits >= deadlock_timeout", regexp: '^#?log_lock_waits' }
+    - { value: "log_temp_files = 0                    # log temporary files equal or larger", regexp: '^#?log_temp_files' }
+    - { value: "log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d '                      # special values:", regexp: '^#?log_line_prefix' }
+    - { value: "log_min_duration_statement = 10        # -1 is disabled, 0 logs all statements", regexp: '^#?log_min_duration_statement' }
+    - { value: "effective_cache_size = {{ effective_cache_size }}MB                   # --pgtune", regexp: '^#?effective_cache_size' }
+    - { value: "work_mem = {{ work_mem if work_mem > 1 else 1 }}MB                   # --pgtune", regexp: '^#?work_mem' }
+    - { value: "maintenance_work_mem = {{ maintenance_work_mem }}MB                   # --pgtune", regexp: '^#?maintenance_work_mem' }
+    - { value: "checkpoint_segments = {{ checkpoint_segments }}                   # --pgtune", regexp: '^#?checkpoint_segments' }
+    - { value: "checkpoint_completion_target = {{ checkpoint_completion_target }}                   # --pgtune", regexp: '^#?checkpoint_completion_target' }
+    - { value: "default_statistics_target = {{ default_statistics_target }}        # range 1-10000 --pgtune", regexp: '^#?default_statistics_target' }
+  9.5:
+    - { value: "log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log' # log file name pattern,", regexp: '^#?log_filename' }
+    - { value: "#log_rotation_age = 1d                  # Automatic rotation of logfiles will", regexp: '^#?log_rotation_age' }
+    - { value: "log_rotation_size = 250MB                   # Automatic rotation of logfiles will", regexp: '^#?log_rotation_size' }
+    - { value: "log_checkpoints = on", regexp: '^#?log_checkpoints' }
+    - { value: "log_connections = on", regexp: '^#?log_connections' }
+    - { value: "log_disconnections = on", regexp: '^#?log_disconnections' }
+    - { value: "log_lock_waits = on                   # log lock waits >= deadlock_timeout", regexp: '^#?log_lock_waits' }
+    - { value: "log_temp_files = 0                    # log temporary files equal or larger", regexp: '^#?log_temp_files' }
+    - { value: "log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d '                      # special values:", regexp: '^#?log_line_prefix' }
+    - { value: "log_min_duration_statement = 10        # -1 is disabled, 0 logs all statements", regexp: '^#?log_min_duration_statement' }
+    - { value: "effective_cache_size = {{ effective_cache_size }}MB                   # --pgtune", regexp: '^#?effective_cache_size' }
+    - { value: "work_mem = {{ work_mem if work_mem > 1 else 1 }}MB                   # --pgtune", regexp: '^#?work_mem' }
+    - { value: "maintenance_work_mem = {{ maintenance_work_mem }}MB                   # --pgtune", regexp: '^#?maintenance_work_mem' }
+    - { value: "min_wal_size = 1GB  # --pgtune", regexp: '^#?min_wal_size' }
+    - { value: "max_wal_size = 2GB  # --pgtune", regexp: '^#?max_wal_size' }
+    - { value: "checkpoint_completion_target = {{ checkpoint_completion_target }}                   # --pgtune", regexp: '^#?checkpoint_completion_target' }
+    - { value: "default_statistics_target = {{ default_statistics_target }}        # range 1-10000 --pgtune", regexp: '^#?default_statistics_target' }
+
+
+#Postgresql.conf settings that require a restart of Postgres
+postgresql_conf_restart:
+  - { value: "listen_addresses = '*'		# what IP address(es) to listen on;", regexp: '^#?listen_addresses' }
+  - { value: "max_connections = {{ max_connections }}                   # (change requires restart)", regexp: '^#?max_connections' }
+  - { value: "shared_buffers = {{ shared_buffers }}MB                   # (change requires restart) --pgtune", regexp: '^#?shared_buffers' }
+  - { value: "wal_buffers = {{ wal_buffers }}MB                   # min 32kB, -1 sets based on shared_buffers --pgtune", regexp: '^#?wal_buffers' }
+
+
+#pg_hba_conf settings
+pg_hba_conf:
+  - { value: "host    all             all             all                     md5", regexp: '^host\s+all\s+all\s+all\s+md5' }
+  - { value: "local    all             all                                     trust", regexp: '^local\s+all\s+all\s' }
+  - { value: "host    all             all             127.0.0.1/32            md5", regexp: '^host\s+all\s+all\s+127.0.0.1/32\s.' }
+  - { value: "host    all             all             ::1/128                 md5", regexp: '^host\s+all\s+all\s+::1/128\s.' }
+
+
+# Streaming Replication Settings
+# Master - Postgresql.conf
+postgresql_conf_master:
+  - { value: "wal_level = hot_standby", regexp: '^#?wal_level' }
+  - { value: "max_wal_senders = 5                   # good rule of thumb is 2x the number of slaves + 3", regexp: '^#?max_wal_senders' }
+  - { value: "wal_keep_segments = 1024                   # store 1024 x 16MBs of data as buffer", regexp: '^#?wal_keep_segments' }
+
+# Slave - Postgresql.conf
+postgresql_conf_slave:
+  - { value: "hot_standby = on", regexp: '^#?hot_standby' }
+  - { value: "archive_mode = off", regexp: '^#?archive_mode' }

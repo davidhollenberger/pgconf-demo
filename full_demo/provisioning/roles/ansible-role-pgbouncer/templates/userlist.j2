@@ -1,0 +1,6 @@
+"postgres" "{{ postgres_password }}"
+{% for hosts in groups[pg_master_group] %}
+{% for (key, value) in hostvars[hosts].pg_dbs.iteritems() %}
+"{{ value.owner }}" "{{ value.password_hash }}"
+{% endfor %}
+{% endfor %}

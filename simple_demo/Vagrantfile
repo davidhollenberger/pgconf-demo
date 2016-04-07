@@ -1,0 +1,32 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "nrel/CentOS-6.6-x86_64"
+  N = 3
+  (1..N).each do |machine_id|
+    config.vm.define "postgres#{machine_id}" do |postgres|
+      postgres.vm.hostname = "postgres#{machine_id}"
+      postgres.vm.network "private_network", ip: "192.168.77.#{20+machine_id}"
+
+      # Only execute once the Ansible provisioner,
+      # when all the machines are up and ready.
+      if machine_id == N
+        postgres.vm.provision :ansible do |ansible|
+          # Disable default limit to connect to all the machines
+          ansible.limit = "all"
+          ansible.playbook = "provisioning/pg-provision.yml"
+        end
+      end
+    end
+  end
+  # config.vm.box = "nrel/CentOS-6.6-x86_64"
+  #
+  # config.vm.provision "ansible" do |ansible|
+  #   ansible.playbook = "provisioning/pg-provision.yml"
+  #   ansible.limit = 'all'
+  # end
+  #
+  # config.vm.define "postgres" do |node|
+  #   node.vm.hostname = "postgres"
+  #   node.vm.network :private_network, ip: "192.168.50.20"
+  #   node.vm.network :forwarded_port, guest: "5432", host: "7000"
+  # end
+end

@@ -1,0 +1,6 @@
+{% for hosts in groups[pg_master_group] %}
+{{ hostvars[hosts].ansible_hostname }},{{ hostvars[hosts].ansible_default_ipv4.address }} ssh-rsa {{ hostvars[hosts].ansible_ssh_host_key_rsa_public }}
+{% endfor %}
+{% for hosts in groups[barman_group] %}
+{{ hostvars[hosts].ansible_hostname }},{{ hostvars[hosts].ansible_default_ipv4.address }} ssh-rsa {{ hostvars[hosts].ansible_ssh_host_key_rsa_public }}
+{% endfor %}

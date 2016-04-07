@@ -1,0 +1,23 @@
+---
+  - name: Update postgresql.conf on Master
+    lineinfile:
+      dest: "{{ pgdata_dir }}/postgresql.conf"
+      state: present
+      line: "{{ item.value }}"
+      regexp: "{{ item.regexp }}"
+    with_items: "{{ postgresql_conf_master }}"
+    notify:
+      - restart postgres
+
+  - name: Update pg_hba.conf on Master
+    lineinfile:
+      dest: "{{ pgdata_dir }}/pg_hba.conf"
+      state: present
+      line: "host    replication     postgres        {{ hostvars[item]['ansible_default_ipv4']['address'] }}/32         trust"
+      regexp: "host    replication     postgres        {{ hostvars[item]['ansible_default_ipv4']['address'] }}/32         trust"
+    with_items: "{{ groups[pg_cluster_group] | intersect(groups[pg_slave_group]) }}"
+    notify:
+      - reload postgres
+
+  # Run any handlers that have been notified
+  - meta: flush_handlers

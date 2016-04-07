@@ -1,0 +1,73 @@
+---
+# role: barman-ssh
+
+- name: barman-ssh | Check Postgres SSH Key
+  user:
+    name: postgres
+    shell: /bin/bash
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_comment: "postgres@{{ ansible_hostname }}"
+    ssh_key_file: .ssh/id_rsa
+  register: pg_key
+  when: inventory_hostname in groups[pg_group]
+
+- name: barman-ssh | set postgres key host fact
+  set_fact:
+    postgres_key: "{{ pg_key.ssh_public_key }}"
+  when: inventory_hostname in groups[pg_group]
+
+- name: barman-ssh | Check Barman SSH Key
+  user:
+    name: barman
+    shell: /bin/bash
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_comment: "barman@{{ ansible_hostname }}"
+    ssh_key_file: .ssh/id_rsa
+  register: barman_key
+  when: inventory_hostname in groups[barman_group]
+
+- name: barman-ssh | set barman key host fact
+  set_fact:
+    barman_key: "{{ barman_key.ssh_public_key }}"
+  when: inventory_hostname in groups[barman_group]
+
+
+# Setup Postgres host for SSH connection to Barman
+- name: barman-ssh | Add Barman public ssh key to Postgres users
+  authorized_key: user=postgres key="{{ hostvars[item].barman_key }}" state=present
+  become: yes
+  with_items: "{{ groups[barman_group] }}"
+  when: "'{{ pg_master_group }}' in group_names"
+
+- name: barman-ssh | Setup Postgres known_hosts file
+  lineinfile:
+    dest: /var/lib/pgsql/.ssh/known_hosts
+    state: present
+    create: yes
+    mode: "u=rw,g=r,o=r"
+    regexp: "^{{ item }},{{ hostvars[item].ansible_default_ipv4.address }}"
+    line: "{{ item }},{{ hostvars[item].ansible_default_ipv4.address }} ssh-rsa {{ hostvars[item].ansible_ssh_host_key_rsa_public }}"
+  become: yes
+  with_items: "{{ groups[barman_group] }}"
+  when: "'{{ pg_master_group }}' in group_names"
+
+# Setup Barman host for SSH connection to Postgres
+- name: barman-ssh | Add Postgres public ssh key to Barman host
+  authorized_key: user=barman key="{{ hostvars[item].postgres_key }}" state=present
+  become: yes
+  with_items: "{{ groups[pg_master_group] }}"
+  when: "'{{ barman_group }}' in group_names"
+
+- name: barman-ssh | Setup Barman known_hosts file
+  lineinfile:
+    dest: /var/lib/barman/.ssh/known_hosts
+    state: present
+    create: yes 
+    mode: "u=rw,g=r,o=r"
+    regexp: "^{{ item }},{{ hostvars[item].ansible_default_ipv4.address }}"
+    line: "{{ item }},{{ hostvars[item].ansible_default_ipv4.address }} ssh-rsa {{ hostvars[item].ansible_ssh_host_key_rsa_public }}"
+  become: yes
+  with_items: "{{ groups[pg_master_group] }}"
+  when: "'{{ barman_group }}' in group_names"

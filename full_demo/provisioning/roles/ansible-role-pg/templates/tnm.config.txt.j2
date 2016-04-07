@@ -1,0 +1,49 @@
+## Config file for the tail_n_mail program
+## This file is automatically updated
+EMAIL: hart-digital-odt@cru.org
+MAILSUBJECT: {{ ec2_tag_env }} Postgres {{ ec2_tag_Name }}-{{ ec2_tag_pg_cluster}} Errors (FILE)
+
+FILE: /var/lib/pgsql/{{ pg_version }}/data/pg_log/LATEST
+INCLUDE: FATAL:
+INCLUDE: PANIC:
+INCLUDE: ERROR:
+EXCLUDE: ERROR: canceling autovacuum task
+EXCLUDE: ERROR: unrecognized configuration parameter "ksqo" #obiee generates these errors
+EXCLUDE: ERROR:  syntax error
+EXCLUDE: ERROR: canceling statement due to user request
+EXCLUDE: database ".+" does not exist
+EXCLUDE: relation ".+" does not exist
+EXCLUDE_PREFIX: ert_unittest
+EXCLUDE_PREFIX: powa
+
+
+## developers have said these errors are ignorable
+## mpdx
+EXCLUDE: ERROR:  duplicate key value violates unique constraint "unique_donation_designation"
+EXCLUDE: ERROR:  duplicate key value violates unique constraint "index_organization_accounts_on_user_id_and_organization_id"
+EXCLUDE: ERROR:  duplicate key value violates unique constraint "index_email_addresses_on_email_and_person_id"
+EXCLUDE: ERROR:  duplicate key value violates unique constraint "index_donor_accounts_on_organization_id_and_account_number"
+EXCLUDE: ERROR:  duplicate key value violates unique constraint "index_family_relationships_on_person_id_and_related_person_id"
+EXCLUDE: ERROR:  duplicate key value violates unique constraint "organization_remote_id"
+EXCLUDE: ERROR:  duplicate key value violates unique constraint "person_account"
+EXCLUDE: ERROR:  duplicate key value violates unique constraint "designation_p_to_a"
+EXCLUDE: ERROR:  duplicate key value violates unique constraint "index_organizations_on_query_ini_url"
+EXCLUDE: ERROR:  duplicate key value violates unique constraint "phone_numbers_pkey"
+EXCLUDE: ERROR:  duplicate key value violates unique constraint "unique_designation_org"
+EXCLUDE: ERROR:  prepared statement \"a\d+\" already exists
+
+## ert
+EXCLUDE: ERROR:  duplicate key value violates unique constraint "permissions_conference_id_identity_id_key"
+EXCLUDE: ERROR:  update or delete on table "payments" violates foreign key constraint "payments_refunded_payment_id_fkey" on table "payments"
+EXCLUDE: ERROR:  duplicate key value violates unique constraint "answers_pkey"
+
+## summer missions
+EXCLUDE: ERROR:  duplicate key value violates unique constraint "globallyUniqueID"
+
+## global registry
+EXCLUDE: ERROR:  duplicate key value violates unique constraint "unique_cii"
+EXCLUDE: ERROR:  insert or update on table "measurements" violates foreign key constraint "measurements_related_entity_id_fkey"
+EXCLUDE: ERROR:  duplicate key value violates unique constraint "unique_measurement"
+
+## watchthinkchat
+EXCLUDE: ERROR:  duplicate key value violates unique constraint "index_visitors_on_email"

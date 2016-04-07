@@ -1,0 +1,16 @@
+; 'pg-{{ hostvars[item].pg_cluster }}' PostgreSQL Server configuration
+[pg-{{ hostvars[item].pg_cluster }}]
+; Human readable description
+description =  "pg-{{ hostvars[item].pg_cluster }} PostgreSQL Database"
+;;
+; SSH options
+ssh_command = ssh postgres@{{ hostvars[item].ansible_default_ipv4.address }}
+;;
+; PostgreSQL connection string
+conninfo = host={{ hostvars[item].ansible_default_ipv4.address }} user=postgres
+;;
+; Minimum number of required backups (redundancy)
+; minimum_redundancy = 1
+;;
+retention_policy = "RECOVERY WINDOW OF 2 WEEKS"
+wal_retention_policy = main

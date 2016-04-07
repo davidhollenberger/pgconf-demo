@@ -1,0 +1,35 @@
+---
+
+- name: barman-pg-config | Add barman entry to pg_hba.conf on all postgres hosts
+  lineinfile: dest=/var/lib/pgsql/{{ pg_version }}/data/pg_hba.conf state=present line="host    all             all             {{ hostvars[item].ansible_default_ipv4.address }}/32           trust" regexp="^host\s+all\s+all\s+{{ hostvars[item].ansible_default_ipv4.address }}\/32\s+trust" insertbefore="^host\s+all\s+all\s+all\s+md5"
+  become: yes
+  with_items: "{{ groups[barman_group] }}"
+  when: "'{{ pg_group }}' in group_names"
+  notify:
+    - reload postgres
+
+- name: barman-pg-config | Configure WAL Archiving on all postgres hosts -- requires restart of postgres
+  lineinfile: dest=/var/lib/pgsql/{{ pg_version }}/data/postgresql.conf state=present line="{{ item.value }}" regexp="{{ item.regexp }}"
+  become: yes
+  with_items:
+    - { value: "wal_level = hot_standby", regexp: '^#?wal_level' }
+    - { value: "archive_mode = on", regexp: '^#?archive_mode' }
+  when: "'{{ pg_group }}' in group_names"
+  notify:
+    - restart postgres
+
+- name: barman-pg-config | Configure WAL Archiving on all postgres hosts -- requires reload of postgres
+  lineinfile: dest=/var/lib/pgsql/{{ pg_version }}/data/postgresql.conf state=present line="archive_command = 'rsync -a %p barman@{{ hostvars[groups[barman_group][0]].ansible_default_ipv4.address }}:/var/lib/barman/pg-{{ pg_cluster }}/incoming/%f'" regexp="^(#BARMAN# ?|#)?archive_command"
+  become: yes
+  notify:
+    - reload postgres
+
+- name: barman-pg-config | Flush Handlers
+  meta: flush_handlers
+
+- name: barman-pg-config | Add entry in /etc/hosts for barman
+  lineinfile:
+    dest: /etc/hosts
+    state: present
+    line: "{{ hostvars[groups[barman_group][0]].ansible_default_ipv4.address }} {{ hostvars[groups[barman_group][0]].ansible_hostname }} {{ hostvars[groups[barman_group][0]].ansible_fqdn }}"
+    regexp: "^{{ hostvars[groups[barman_group][0]].ansible_default_ipv4.address }}"

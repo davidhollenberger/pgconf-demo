@@ -1,0 +1,11 @@
+#!/bin/bash
+
+#set a couple variables
+export TIMESTAMP=$(date +%Y%m%d%H%M%S)
+export FILE={{ item.value.dbname }}_$TIMESTAMP.dmp
+
+#backup database
+pg_dump -v -F c -f /var/lib/pgsql/{{ pg_version }}/backups/$FILE {{ item.value.dbname }}
+
+#push backup to s3
+aws s3 cp /var/lib/pgsql/{{ pg_version }}/backups/$FILE s3://cru-pg-backups/{{ item.value.env }}/{{ item.value.dbname }}/$FILE

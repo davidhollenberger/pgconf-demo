@@ -1,0 +1,6 @@
+{% for hosts in groups[pg_master_group] %}
+ssh-rsa {{ hostvars[hosts].postgres_key }}
+{% endfor %}
+{% for hosts in groups[barman_group] %}
+ssh-rsa {{ hostvars[hosts].barman_key }}
+{% endfor %}

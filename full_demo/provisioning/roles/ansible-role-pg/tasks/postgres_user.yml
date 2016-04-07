@@ -1,0 +1,60 @@
+---
+
+- name: Create Postgres SSH Key
+  user:
+    name: postgres
+    shell: /bin/bash
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_comment: "postgres@{{ ansible_hostname }}"
+    ssh_key_file: .ssh/id_rsa
+  register: pg_key
+
+- name: set postgres key host fact
+  set_fact:
+    postgres_key: "{{ pg_key.ssh_public_key }}"
+
+- name: Set file permissions on ssh key
+  file:
+    path: /var/lib/pgsql/.ssh/id_rsa
+    mode: 0600
+
+- name: Add public ssh key to all postgres hosts
+  authorized_key:
+    user: postgres
+    key: "{{ hostvars[item].postgres_key }}"
+    state: present
+  with_items: "{{ groups[pg_group] }}"
+
+# - name: Setup Postgres known_hosts file
+#   known_hosts:
+#     path: /var/lib/pgsql/.ssh/known_hosts
+#     name: "{{ item }},{{ hostvars[item].ansible_default_ipv4.address }}"
+#     key: "{{ hostvars[item].ansible_ssh_host_key_rsa_public }}"
+#   with_items: "{{ groups[pg_group] }}"
+
+- name: Setup Postgres known_hosts file
+  lineinfile:
+    dest: /var/lib/pgsql/.ssh/known_hosts
+    state: present
+    create: yes
+    mode: "u=rw,g=r,o=r"
+    regexp: "^{{ item }},{{ hostvars[item].ansible_default_ipv4.address }}"
+    line: "{{ item }},{{ hostvars[item].ansible_default_ipv4.address }} ssh-rsa {{ hostvars[item].ansible_ssh_host_key_rsa_public }}"
+  with_items: "{{ groups[pg_group] }}"
+
+
+- name: Update Postgres .bash_profile
+  lineinfile:
+    dest: /var/lib/pgsql/.bash_profile
+    line: "{{ item }}"
+  with_items:
+    - export PATH=/usr/pgsql-{{ pg_version }}/bin:$PATH
+    - export PS1='[\u@{{ ansible_hostname }} \W]\$'
+
+- name: Add postgres to Sudoers file
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: ^postgres ALL\=
+    line: "postgres ALL=(ALL) NOPASSWD: ALL"

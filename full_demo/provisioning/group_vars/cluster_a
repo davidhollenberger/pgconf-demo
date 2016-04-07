@@ -1,0 +1,24 @@
+---
+# file: group_vars/cluster_a
+
+pg_cluster: a
+
+pg_repack: true   # install pg_repack extension
+
+pg_version: 9.4
+
+pg_dbs:
+  vagrant:
+    owner: vagrant
+    password_hash: md5ce5f2d27bc6276a03b0328878c1dc0e2  #vagrant
+    dbname: vagrant
+    env: lab
+    bkp_hour: 3
+    bkp_min: 30
+  test:
+    owner: test
+    password_hash: md505a671c66aefea124cc08b76ea6d30bb  #test
+    dbname: test
+    env: lab
+    bkp_hour: 3
+    bkp_min: 30

@@ -1,0 +1,50 @@
+---
+#role: pg
+
+- name: Set postgres db user password
+  postgresql_user:
+    name: postgres
+    password: "{{ postgres_password }}"
+    encrypted: true
+  tags: dbusers
+
+- name: create database users
+  postgresql_user:
+    name: "{{ item.value.owner }}"
+    password: "{{ item.value.password_hash}}"
+    encrypted: true
+  with_dict: "{{ pg_dbs | default({}) }}"
+  tags: dbusers
+
+- name: create application databases
+  postgresql_db:
+    name: "{{ item.value.dbname }}"
+    owner: "{{ item.value.owner }}"
+    state: present
+  with_dict: "{{ pg_dbs | default({}) }}"
+
+- name: create scripts directory
+  file:
+    path: /var/lib/pgsql/scripts
+    state: directory
+    group: postgres
+    owner: postgres
+
+- name: create backup scripts
+  template:
+    src: daily_pg_dump.j2
+    dest: "/var/lib/pgsql/scripts/daily_bkp_{{ item.value.dbname }}.sh"
+    owner: postgres
+    group: postgres
+    mode: 0755
+  with_dict: "{{ pg_dbs | default({}) }}"
+
+- name: cron backup jobs
+  cron:
+    name: "daily pg_dump for {{ item.value.dbname }}"
+    minute: "{{ item.value.bkp_min }}"
+    hour: "{{ item.value.bkp_hour }}"
+    job: "/var/lib/pgsql/scripts/daily_bkp_{{ item.value.dbname }}.sh"
+    user: postgres
+  become_user: root
+  with_dict: "{{ pg_dbs | default({}) }}"

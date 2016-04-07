@@ -1,0 +1,20 @@
+---
+  - name: Install Barman Prereqs
+    yum: name={{ item }} state=present
+    with_items:
+      - rsync
+
+  - name: Install and Configure Barman
+    include: barman-config.yml
+    when: "'{{ barman_group }}' in group_names and barman_install"
+    tags: barman-config
+
+  - name: Barman SSH Config
+    include: barman-ssh.yml
+    when: "'{{ pg_slave_group }}' not in group_names and barman_ssh"
+    tags: barman-ssh
+
+  - name: Configure Postgres
+    include: barman-pg-config.yml
+    when: "'{{ pg_slave_group }}' and '{{ barman_group }}' not in group_names and barman_pg_config"
+    tags: barman-pg-config

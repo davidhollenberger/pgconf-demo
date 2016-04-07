@@ -1,0 +1,32 @@
+---
+  #role: pgbouncer
+  #file: tasks/main.yml
+
+- name: Install Postgres 9.4 Repo
+  yum: name={{ pg_rpm[pg_version].url }} state=present
+
+- name: Install pg client and pgbouncer
+  yum: name={{ item }} state=present
+  with_items:
+    - postgresql{{ pg_version |replace(".","") }}
+    - pgbouncer-{{ pgbouncer_version }}-1.rhel6
+
+- name: Set pgbouncer to start on boot
+  service:
+    name: pgbouncer
+    state: started
+    enabled: yes
+
+- name: Configure pgbouncer
+  template:
+    src: pgbouncer_ini.j2
+    dest: /etc/pgbouncer/pgbouncer.ini
+    mode: 0644
+  notify: Restart pgbouncer
+
+- name: Configure User Authentication
+  template:
+    src: userlist.j2
+    dest: /etc/pgbouncer/userlist.txt
+    mode: 0644
+  notify: Restart pgbouncer

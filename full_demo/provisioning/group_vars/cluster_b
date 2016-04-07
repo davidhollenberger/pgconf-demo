@@ -1,0 +1,24 @@
+---
+# file: group_vars/cluster_b
+
+pg_cluster: b
+
+pg_repack: false   # install pg_repack extension
+
+pg_version: 9.5
+
+pg_dbs:
+  ansible:
+    owner: ansible
+    password_hash: md5885ea6ac2150f8d22992247cd5e5d05d  #ansible
+    dbname: ansible
+    env: lab
+    bkp_hour: 2
+    bkp_min: 30
+  devops:
+    owner: devops
+    password_hash: md56db8d19485d2abd344868a0b43137a12  #devops
+    dbname: devops
+    env: lab
+    bkp_hour: 2
+    bkp_min: 45

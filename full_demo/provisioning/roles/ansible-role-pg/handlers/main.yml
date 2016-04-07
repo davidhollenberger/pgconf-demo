@@ -1,0 +1,13 @@
+---
+# handlers file for ansible-role-pg
+  - name: restart postgres
+    command: /usr/pgsql-{{ pg_version }}/bin/pg_ctl restart -m fast
+    become: yes
+    become_user: postgres
+    environment: "{{ postgres_env }}"
+
+  - name: reload postgres
+    command: /usr/pgsql-{{ pg_version }}/bin/pg_ctl reload
+    become: yes
+    become_user: postgres
+    environment: "{{ postgres_env }}"

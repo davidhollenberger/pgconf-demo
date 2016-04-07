@@ -1,0 +1,19 @@
+---
+
+pg_group: postgres
+pg_master_group: master
+pg_slave_group: slave
+barman_group: barman
+
+postgres_password: md53175bce1d3201d16594cebf9d7eb3f9d #postgres
+
+pg_version: 9.4
+
+pg_rpm: #from http://yum.postgresql.org/repopackages.php
+  9.4:
+    url: http://yum.postgresql.org/9.4/redhat/rhel-6-x86_64/pgdg-centos94-9.4-1.noarch.rpm
+  9.5:
+    url: https://download.postgresql.org/pub/repos/yum/9.5/redhat/rhel-6-x86_64/pgdg-centos95-9.5-2.noarch.rpm
+
+postgres_env:
+  PGDATA: /var/lib/pgsql/{{ pg_version }}/data

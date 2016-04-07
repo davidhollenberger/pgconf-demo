@@ -1,0 +1,12 @@
+- name: Configure Vagrant VMs
+  hosts: all
+  connection: ssh
+  any_errors_fatal: true
+  gather_facts: false
+  become: true
+  tasks:
+    - name: stop and disable iptables service
+      service:
+        name: iptables
+        state: stopped
+        enabled: no

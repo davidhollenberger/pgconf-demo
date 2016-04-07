@@ -1,0 +1,36 @@
+---
+- name: Create Simple PostgreSQL Database
+  hosts: all
+  connection: ssh
+  become: true
+  tasks:
+    - name: Install Postgres RPM
+      yum:
+        name: https://download.postgresql.org/pub/repos/yum/9.5/redhat/rhel-6-x86_64/pgdg-centos95-9.5-2.noarch.rpm
+        state: present
+
+    - name: Install Postgres
+      yum: name={{ item }} state=present
+      with_items:
+        - postgresql95-server
+        - postgresql95-contrib
+        - postgresql95-devel
+
+    - name: Check if Postgres Cluster already exists
+      stat: path=/var/lib/pgsql/9.5/data/postgresql.conf
+      register: pg_exists
+
+    - name: Initialize Postgres Database Cluster
+      command: service postgresql-9.5 initdb
+      when: not pg_exists.stat.exists
+
+    - name: Enable Postgres Service
+      service: name=postgresql-9.5 enabled=yes state=started
+
+    - name: Create Database
+      postgresql_db: name=test state=present
+      become_user: postgres
+
+    - name: Create Database User
+      postgresql_user: db=test name=test priv=ALL state=present
+      become_user: postgres

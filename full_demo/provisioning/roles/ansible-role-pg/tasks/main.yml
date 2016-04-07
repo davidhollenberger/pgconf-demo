@@ -1,0 +1,48 @@
+---
+#role: pg
+- name: Install EPEL repo
+  yum: name=epel-release state=present
+
+- name: Install Postgres
+  include: install_postgres.yml
+  tags: install_postgres
+
+- name: Configure Postgres
+  include: configure_postgres.yml
+  tags: configure_postgres
+
+- name: Create Postgres Linux User
+  include: postgres_user.yml
+  tags: postgres_user
+
+- name: Create DBA Users, App Owners, Databases and Backup Jobs
+  include: create_db.yml
+  become_user: postgres
+  when: "'{{ pg_slave_group }}' not in group_names and '{{ barman_group }}' not in group_names"
+  tags: create_db
+
+- name: Configure pg_buffercache extension
+  postgresql_ext: name=pg_buffercache db="{{ item.value.dbname }}"
+  with_dict: "{{ pg_dbs | default({}) }}"
+  when: item.value.pg_buffercache_ext is defined
+  tags: pg_buffercache
+
+- name: Configure pg_prewarm extension
+  postgresql_ext: name=pg_prewarm db="{{ item.value.dbname }}"
+  with_dict: "{{ pg_dbs | default({}) }}"
+  when: item.value.pg_prewarm_ext is defined
+  tags: pg_prewarm
+
+#Streaming Replication Setup
+- name: Configure Streaming Replication - Master
+  include: pg-replication-master.yml
+  when: "'{{ pg_master_group }}' in group_names"
+  tags:
+    - replication
+
+- name: Configure Streaming Replication - Slave
+  include: pg-replication-slave.yml
+  become_user: postgres
+  when: "'{{ pg_slave_group }}' in group_names"
+  tags:
+    - replication

@@ -1,0 +1,94 @@
+---
+- name: Configure Vagrant VMs
+  hosts: all
+  connection: ssh
+  any_errors_fatal: true
+  become: true
+  tasks:
+    - name: stop and disable iptables service
+      service:
+        name: iptables
+        state: stopped
+        enabled: no
+      tags: always
+
+    - name: Set default ipv4 fact
+      set_fact:
+        ansible_default_ipv4: "{{ ansible_eth1.ipv4 }}"
+      tags: always
+
+
+- name: Install and configure postgres
+  hosts: postgres
+  connection: ssh
+  any_errors_fatal: true
+  become: true
+  roles:
+    - role: ansible-role-pg
+      tags: pg
+
+  post_tasks:
+    - debug: var=ansible_default_ipv4
+
+
+- name: Configure barman
+  hosts: postgres:barman:!slave
+  connection: ssh
+  any_errors_fatal: true
+  become: true
+  roles:
+    - role: ansible-role-barman
+      tags: barman
+
+- name: Configure pgbouncer
+  hosts: pgbouncer
+  connection: ssh
+  become: true
+  become_user: root
+  roles:
+    - role: ansible-role-pgbouncer
+      tags: pgbouncer
+
+
+# - name: Post Config Checks
+#   hosts: all
+#   connection: ssh
+#   become: true
+#   tasks:
+#
+#   - name: check that postgres service is running
+#     command: "/usr/pgsql-{{ pg_version }}/bin/pg_ctl status"
+#     become_user: postgres
+#     environment: "{{ postgres_env }}"
+#     register: pgctl
+#     when: "'{{ pg_master_group }}' in group_names"
+#
+#   - debug: var=pgctl.stdout
+#     when: "'{{ pg_master_group }}' in group_names"
+#
+#   - name: check sender process on Master
+#     shell: ps -ef|grep sende[r]
+#     become_user: postgres
+#     register: sender
+#     when: "'{{ pg_master_group }}' in group_names"
+#
+#   - debug: var=sender.stdout
+#     when: "'{{ pg_master_group }}' in group_names"
+#
+#   - name: check receiver processon Slave
+#     shell: ps -ef|grep receive[r]
+#     become_user: postgres
+#     register: receiver
+#     when: "'{{ pg_slave_group }}' in group_names"
+#
+#   - debug: var=receiver.stdout
+#     when: "'{{ pg_slave_group }}' in group_names"
+#
+#   - name: check barman status
+#     command: /usr/bin/barman check all
+#     become_user: barman
+#     register: barman_check
+#     when: "'{{ barman_group }}' in group_names"
+#
+#   - debug: var=barman_check.stdout_lines
+#     when: "'{{ barman_group }}' in group_names"
