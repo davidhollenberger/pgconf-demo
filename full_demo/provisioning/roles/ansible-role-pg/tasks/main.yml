@@ -18,7 +18,7 @@
 - name: Create DBA Users, App Owners, Databases and Backup Jobs
   include: create_db.yml
   become_user: postgres
-  when: "'{{ pg_slave_group }}' not in group_names and '{{ barman_group }}' not in group_names"
+  when: "'{{ pg_standby_group }}' not in group_names and '{{ barman_group }}' not in group_names"
   tags: create_db
 
 - name: Configure pg_buffercache extension
@@ -40,9 +40,9 @@
   tags:
     - replication
 
-- name: Configure Streaming Replication - Slave
-  include: pg-replication-slave.yml
+- name: Configure Streaming Replication - standby
+  include: pg-replication-standby.yml
   become_user: postgres
-  when: "'{{ pg_slave_group }}' in group_names"
+  when: "'{{ pg_standby_group }}' in group_names"
   tags:
     - replication

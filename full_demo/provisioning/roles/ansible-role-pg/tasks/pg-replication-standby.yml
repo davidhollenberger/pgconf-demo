@@ -1,5 +1,5 @@
 ---
-  - name: check if receiver process is running on Slave
+  - name: check if receiver process is running on standby
     shell: ps -ef|grep receive[r]
     register: ps_receiver
     changed_when: ps_receiver.rc != 2
@@ -30,22 +30,22 @@
     poll: 30
     register: pg_basebackup
 
-  - name: Update postgresql.conf on Slave
+  - name: Update postgresql.conf on standby
     lineinfile: dest="{{ pgdata_dir }}/postgresql.conf" state=present line="{{ item.value }}" regexp="{{ item.regexp }}"
-    with_items: "{{ postgresql_conf_slave }}"
+    with_items: "{{ postgresql_conf_standby }}"
     when: ps_receiver.stdout_lines|count == 0
 
-  - name: Startup postgres on Slave
+  - name: Startup postgres on standby
     command: /usr/pgsql-{{ pg_version }}/bin/pg_ctl start
     become: yes
     become_user: postgres
     environment: "{{ postgres_env }}"
     when: ps_receiver.stdout_lines|count == 0
 
-  - name: check if receiver process is running on Slave
+  - name: check if receiver process is running on standby
     shell: ps -ef|grep receive[r]
     ignore_errors: yes
-    register: ps_receiver_slave
-    until: ps_receiver_slave.stdout.find("wal receiver process") != -1
+    register: ps_receiver_standby
+    until: ps_receiver_standby.stdout.find("wal receiver process") != -1
     retries: 10
     delay: 5

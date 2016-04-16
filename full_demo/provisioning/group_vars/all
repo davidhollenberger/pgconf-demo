@@ -2,7 +2,7 @@
 
 pg_group: postgres
 pg_master_group: master
-pg_slave_group: slave
+pg_standby_group: standby
 barman_group: barman
 
 postgres_password: md53175bce1d3201d16594cebf9d7eb3f9d #postgres

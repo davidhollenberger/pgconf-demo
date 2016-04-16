@@ -15,7 +15,7 @@
       state: present
       line: "host    replication     postgres        {{ hostvars[item]['ansible_default_ipv4']['address'] }}/32         trust"
       regexp: "host    replication     postgres        {{ hostvars[item]['ansible_default_ipv4']['address'] }}/32         trust"
-    with_items: "{{ groups[pg_cluster_group] | intersect(groups[pg_slave_group]) }}"
+    with_items: "{{ groups[pg_cluster_group] | intersect(groups[pg_standby_group]) }}"
     notify:
       - reload postgres
 

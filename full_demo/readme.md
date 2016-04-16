@@ -39,13 +39,13 @@ Connect through PGBouncer:
 
 On current master run `pg_ctl stop -m immediate`
 
-Promote slave by running `pg_ctl promote`
+Promote standby by running `pg_ctl promote`
 
 Edit Vagrantfile:
 
 ```
 "master" => ["pg-a-2"],
-"slave" => ["pg-a-1"],
+"standby" => ["pg-a-1"],
 ```
 
 Provision VMs again

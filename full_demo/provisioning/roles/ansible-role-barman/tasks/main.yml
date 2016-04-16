@@ -11,10 +11,10 @@
 
   - name: Barman SSH Config
     include: barman-ssh.yml
-    when: "'{{ pg_slave_group }}' not in group_names and barman_ssh"
+    when: "'{{ pg_standby_group }}' not in group_names and barman_ssh"
     tags: barman-ssh
 
   - name: Configure Postgres
     include: barman-pg-config.yml
-    when: "'{{ pg_slave_group }}' and '{{ barman_group }}' not in group_names and barman_pg_config"
+    when: "'{{ pg_standby_group }}' and '{{ barman_group }}' not in group_names and barman_pg_config"
     tags: barman-pg-config

@@ -3,7 +3,7 @@
 #default inventory groups
 pg_group: postgres
 pg_master_group: master
-pg_slave_group: slave
+pg_standby_group: standby
 pg_cluster_group: cluster_{{ pg_cluster }}
 barman_group: barman
 
@@ -115,10 +115,10 @@ pg_hba_conf:
 # Master - Postgresql.conf
 postgresql_conf_master:
   - { value: "wal_level = hot_standby", regexp: '^#?wal_level' }
-  - { value: "max_wal_senders = 5                   # good rule of thumb is 2x the number of slaves + 3", regexp: '^#?max_wal_senders' }
+  - { value: "max_wal_senders = 5                   # good rule of thumb is 2x the number of standby + 3", regexp: '^#?max_wal_senders' }
   - { value: "wal_keep_segments = 1024                   # store 1024 x 16MBs of data as buffer", regexp: '^#?wal_keep_segments' }
 
-# Slave - Postgresql.conf
-postgresql_conf_slave:
+# standby - Postgresql.conf
+postgresql_conf_standby:
   - { value: "hot_standby = on", regexp: '^#?hot_standby' }
   - { value: "archive_mode = off", regexp: '^#?archive_mode' }

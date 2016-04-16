@@ -34,7 +34,7 @@
     group: barman
   with_items:
     - "{{ groups[pg_group] }}"
-  when: "'{{ pg_slave_group }}' not in hostvars[item].group_names"
+  when: "'{{ pg_standby_group }}' not in hostvars[item].group_names"
 
 - name: Cron Weekly Full Backup (Saturday)
   cron:

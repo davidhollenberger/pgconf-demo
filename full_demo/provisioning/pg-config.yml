@@ -32,7 +32,7 @@
 
 
 - name: Configure barman
-  hosts: postgres:barman:!slave
+  hosts: postgres:barman:!standby
   connection: ssh
   any_errors_fatal: true
   become: true
@@ -75,14 +75,14 @@
 #   - debug: var=sender.stdout
 #     when: "'{{ pg_master_group }}' in group_names"
 #
-#   - name: check receiver processon Slave
+#   - name: check receiver processon standby
 #     shell: ps -ef|grep receive[r]
 #     become_user: postgres
 #     register: receiver
-#     when: "'{{ pg_slave_group }}' in group_names"
+#     when: "'{{ pg_standby_group }}' in group_names"
 #
 #   - debug: var=receiver.stdout
-#     when: "'{{ pg_slave_group }}' in group_names"
+#     when: "'{{ pg_standby_group }}' in group_names"
 #
 #   - name: check barman status
 #     command: /usr/bin/barman check all

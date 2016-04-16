@@ -3,7 +3,7 @@
 #default inventory groups
 pg_group: postgres
 pg_master_group: master
-pg_slave_group: slave
+pg_standby_group: standby
 barman_group: barman
 
 pg_version: 9.4

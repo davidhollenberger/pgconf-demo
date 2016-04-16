@@ -12,7 +12,7 @@
   notify:
     - reload postgres
   tags: postgres_conf
-  when: "'{{ pg_slave_group }}' not in group_names and '{{ barman_group }}' not in group_names"
+  when: "'{{ pg_standby_group }}' not in group_names and '{{ barman_group }}' not in group_names"
 
 - name: configure_postgres | Update postgresql.conf - changes require restart
   lineinfile:
@@ -24,7 +24,7 @@
   notify:
     - restart postgres
   tags: postgres_conf
-  when: "'{{ pg_slave_group }}' not in group_names and '{{ barman_group }}' not in group_names"
+  when: "'{{ pg_standby_group }}' not in group_names and '{{ barman_group }}' not in group_names"
 
 - name: configure_postgres | Update pg_hba.conf
   lineinfile: dest="{{ pgdata_dir }}/pg_hba.conf" state=present line="{{ item.value }}" regexp="{{ item.regexp }}"
@@ -32,7 +32,7 @@
   notify:
     - reload postgres
   tags: pg_hba_conf
-  when: "'{{ pg_slave_group }}' not in group_names and '{{ barman_group }}' not in group_names"
+  when: "'{{ pg_standby_group }}' not in group_names and '{{ barman_group }}' not in group_names"
 
 # Run any handlers that have been notified
 - name: configure_postgres | Flush Handlers

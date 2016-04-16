@@ -9,7 +9,7 @@ Vagrant.configure("2") do |config|
       "cluster_a" => ["pg-a-1", "pg-a-2"],
       "cluster_b" => ["pg-b-1", "pg-b-2"],
       "master" => ["pg-a-1", "pg-b-2"],
-      "slave" => ["pg-a-2", "pg-b-1"],
+      "standby" => ["pg-a-2", "pg-b-1"],
       "barman" => ["barman"],
       "pgbouncer" => ["pgbouncer"]
     }
@@ -49,14 +49,5 @@ Vagrant.configure("2") do |config|
     node.vm.network :private_network, ip: "192.168.50.31"
     node.vm.network :forwarded_port, guest: "6432", host: "8001"
   end
-
-  # (1..4).each do |i|
-  #   ip = 50 + i
-  #   config.vm.define "postgres#{i}" do |node|
-  #     node.vm.hostname = "postgres#{i}"
-  #     node.vm.network :private_network, ip: "192.168.50.#{ip}"
-  #     node.vm.network :forwarded_port, guest: "5432", host: "700#{i}" # postgres
-  #   end
-  # end
 
 end
