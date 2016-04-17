@@ -11,7 +11,7 @@
     - barman-{{ barman_version }}
 
 - name: Create directory structure
-  file: path={{ item }} state=directory
+  file: path={{ item }} state=directory owner=barman group=barman
   with_items:
     - /etc/barman
     - /etc/barman.d
@@ -25,6 +25,7 @@
     dest: /etc/barman/barman.conf
     owner: barman
     group: barman
+    mode: 0644
 
 - name: Template /etc/barman.d/ config files for all postgres hosts
   template:
@@ -32,6 +33,7 @@
     dest: /etc/barman.d/pg-{{ hostvars[item].pg_cluster }}.conf
     owner: barman
     group: barman
+    mode: 0644
   with_items:
     - "{{ groups[pg_group] }}"
   when: "'{{ pg_standby_group }}' not in hostvars[item].group_names"
