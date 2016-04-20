@@ -17,6 +17,8 @@ vagrant provision pg-a-1
 
 ##Connecting to Databases
 
+**Database names and usernames are defined in `provisioning/group_vars/cluster_a[b]`**
+
 Connect to pg-a-1:
 
 `psql -h 127.0.0.1 -p 7001 -d <dbname> -U <username>`
