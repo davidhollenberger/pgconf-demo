@@ -11,6 +11,7 @@
     - postgresql{{ pg_version |replace(".","") }}-contrib
     - postgresql{{ pg_version |replace(".","") }}-devel
     - python-psycopg2 # required for ansible postgresql modules
+    - rsync
 
 - name: install_postgres | Check if Postgres Cluster already exists
   stat:
