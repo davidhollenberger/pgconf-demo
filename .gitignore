@@ -1,3 +1,4 @@
 .bundle
 .vagrant
 *.retry
+full_demo/provisioning/roles/
