@@ -1,0 +1,5 @@
+# Required roles for Postgres full demo
+
+- src: https://github.com/davidhollenberger/ansible-role-pg.git
+- src: https://github.com/davidhollenberger/ansible-role-barman.git
+- src: https://github.com/davidhollenberger/ansible-role-pgbouncer.git
